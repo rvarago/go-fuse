@@ -120,7 +120,7 @@ func main() {
 		fmt.Fprintf(os.Stderr, "unable to mount at '%v': %v", cli.mountPoint, err)
 		os.Exit(EXOSFILE)
 	}
-	log.Printf("mounting s3 bucket '%v' at '%v'", cli.bucketName, cli.mountPoint)
+	log.Printf("mounted s3 bucket '%v' at '%v'", cli.bucketName, cli.mountPoint)
 
 	server.Wait()
 }
