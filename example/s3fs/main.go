@@ -20,6 +20,13 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 )
 
+// Exit status as per https://www.freebsd.org/cgi/man.cgi?query=sysexits.
+const (
+	EXUSAGE       = 64
+	EXUNAVAILABLE = 69
+	EXOSFILE      = 72
+)
+
 // s3Bucket captures the intent to connect to a bucket.
 type s3Bucket struct {
 	fs.Inode
@@ -83,7 +90,7 @@ func newCli() cli {
 	bailIf := func(check bool, cause string) {
 		if check {
 			fmt.Fprintf(os.Stderr, "oops! %v.\n\nusage:\n  s3fs -bucket=BUCKET MOUNTPOINT", cause)
-			os.Exit(64)
+			os.Exit(EXUSAGE)
 		}
 	}
 
@@ -105,13 +112,13 @@ func main() {
 	bucket, err := newS3Bucket(cli.bucketName, cli.endpoint)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "unable to open connection to s3 bucket '%v': %v", cli.bucketName, err)
-		os.Exit(69)
+		os.Exit(EXUNAVAILABLE)
 	}
 
 	server, err := fs.Mount(cli.mountPoint, bucket, &fs.Options{})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "unable to mount at '%v': %v", cli.mountPoint, err)
-		os.Exit(72)
+		os.Exit(EXOSFILE)
 	}
 	log.Printf("mounting s3 bucket '%v' at '%v'", cli.bucketName, cli.mountPoint)
 
