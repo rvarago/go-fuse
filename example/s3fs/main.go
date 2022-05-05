@@ -70,34 +70,50 @@ func (o *s3Object) Getattr(ctx context.Context, f fs.FileHandle, out *fuse.AttrO
 	return 0
 }
 
-func main() {
+// cli is the set of options to start up this app.
+type cli struct {
+	mountPoint string
+	bucketName string
+	endpoint   string
+}
+
+func newCli() cli {
 	bucketName := flag.String("bucket", "", "bucket name")
 
+	bailIf := func(check bool, cause string) {
+		if check {
+			fmt.Fprintf(os.Stderr, "oops! %v.\n\nusage:\n  s3fs -bucket=BUCKET MOUNTPOINT", cause)
+			os.Exit(64)
+		}
+	}
+
 	flag.Parse()
-	if len(flag.Args()) < 1 {
-		fmt.Fprintf(os.Stderr, "oops! MOUNTPOINT was not provided.\n\nusage:\n  s3fs -bucket=BUCKET MOUNTPOINT")
-		os.Exit(64)
+
+	bailIf(len(flag.Args()) < 1, "MOUNTPOINT was not provided")
+	bailIf(*bucketName == "", "BUCKET was not provided")
+
+	return cli{
+		mountPoint: flag.Arg(0),
+		bucketName: *bucketName,
+		endpoint:   os.Getenv("AWS_ENDPOINT"),
 	}
+}
 
-	if *bucketName == "" {
-		fmt.Fprintf(os.Stderr, "oops! BUCKET was not provided.\n\nusage:\n  s3fs -bucket=BUCKET MOUNTPOINT")
-		os.Exit(64)
-	}
+func main() {
+	cli := newCli()
 
-	mountpoint := flag.Arg(0)
-
-	bucket, err := newS3Bucket(*bucketName, os.Getenv("AWS_ENDPOINT"))
+	bucket, err := newS3Bucket(cli.bucketName, cli.endpoint)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "unable to open connection to s3 bucket '%v': %v", bucketName, err)
+		fmt.Fprintf(os.Stderr, "unable to open connection to s3 bucket '%v': %v", cli.bucketName, err)
 		os.Exit(69)
 	}
 
-	server, err := fs.Mount(mountpoint, bucket, &fs.Options{})
+	server, err := fs.Mount(cli.mountPoint, bucket, &fs.Options{})
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "unable to mount at '%v': %v", mountpoint, err)
+		fmt.Fprintf(os.Stderr, "unable to mount at '%v': %v", cli.mountPoint, err)
 		os.Exit(72)
 	}
-	log.Printf("mounting s3 bucket '%v' at '%v'", *bucketName, mountpoint)
+	log.Printf("mounting s3 bucket '%v' at '%v'", cli.bucketName, cli.mountPoint)
 
 	server.Wait()
 }
