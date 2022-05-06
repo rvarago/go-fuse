@@ -1,4 +1,4 @@
-// This program is exposes a list of files backed by an AWS S3 bucket where one **only** can list entries.
+// This program exposes a FUSE backed by an aws s3 bucket where one can **only** list objects contained in the bucket.
 //
 // For simplicity, the implementation eagerly caches metadata of all objects upon mounting and **never** refreshes it.
 // Therefore, changes made to the bucket *after* mounting it into fs will not be visible to the latter.
