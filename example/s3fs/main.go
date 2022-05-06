@@ -66,7 +66,7 @@ type s3Object struct {
 }
 
 func (o *s3Object) Getattr(ctx context.Context, f fs.FileHandle, out *fuse.AttrOut) syscall.Errno {
-	out.Mode = 0444
+	out.Mode = 0444 // -r--r--r--
 	out.Nlink = 1
 	out.Mtime = uint64(o.content.LastModified.Unix())
 	out.Atime = uint64(0)
