@@ -2,6 +2,13 @@
 //
 // For simplicity, the implementation eagerly caches metadata of all objects upon mounting and **never** refreshes it.
 // Therefore, changes made to the bucket *after* mounting it into fs will not be visible to the latter.
+//
+// # Possible improvements
+//
+// 1. Support fetching s3 on demand, with a cli flag to cache it,
+// 2. Bound fs operations to a sensible timeout,
+// 3. Add other relevant fs operations,
+// 4. Add support for auto-umount.
 package main
 
 import (
@@ -45,7 +52,7 @@ func newS3Bucket(bucketName, endpoint string) (fs.InodeEmbedder, error) {
 	return &s3Bucket{name: bucketName, backend: backend}, nil
 }
 
-// OnAdd eagerly builds a fs view over the contents of the bucket.
+// OnAdd eagerly builds an fs view over the contents of the bucket.
 func (b *s3Bucket) OnAdd(ctx context.Context) {
 	if out, err := b.backend.ListObjects(&s3.ListObjectsInput{Bucket: &b.name}); err != nil {
 		log.Printf("failed to query s3 bucket '%v': %v", b.name, err)
