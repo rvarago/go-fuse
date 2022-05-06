@@ -46,7 +46,7 @@ type s3Bucket struct {
 func newS3Bucket(bucketName, endpoint string) (fs.InodeEmbedder, error) {
 	session, err := session.NewSession(aws.NewConfig().WithEndpoint(endpoint))
 	if err != nil {
-		return nil, fmt.Errorf("open session to failed: %v", err)
+		return nil, fmt.Errorf("failed to establish session with s3: %v", err)
 	}
 	backend := s3.New(session, aws.NewConfig().WithS3ForcePathStyle(true))
 	return &s3Bucket{name: bucketName, backend: backend}, nil
@@ -118,7 +118,7 @@ func main() {
 
 	bucket, err := newS3Bucket(cli.bucketName, cli.endpoint)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "unable to open connection to s3 bucket '%v': %v", cli.bucketName, err)
+		fmt.Fprintf(os.Stderr, "unable to open s3 connection to bucket '%v': %v", cli.bucketName, err)
 		os.Exit(EXUNAVAILABLE)
 	}
 
