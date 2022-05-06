@@ -91,8 +91,11 @@ type cli struct {
 	endpoint   string
 }
 
+// newCli exposes the command-line interface to users.
 func newCli() cli {
 	bucketName := flag.String("bucket", "", "bucket name")
+
+	flag.Parse()
 
 	bailIf := func(check bool, cause string) {
 		if check {
@@ -100,8 +103,6 @@ func newCli() cli {
 			os.Exit(EXUSAGE)
 		}
 	}
-
-	flag.Parse()
 
 	bailIf(len(flag.Args()) < 1, "MOUNTPOINT was not provided")
 	bailIf(*bucketName == "", "BUCKET was not provided")
